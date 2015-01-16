@@ -103,4 +103,13 @@ if (process.argv[2].toLowerCase() == 'generate') {
 	var init_content = fs.readFileSync(__dirname + '/templates/init-models.js', 'utf8');
 	var content = Mustache.render(init_content, {name: process.argv[3], models: ionrc.models});
 	fs.writeFile('./models/init.js', content, function(err) {});
+
+	// Create controller file
+	var model_content = fs.readFileSync(__dirname + '/templates/controller.js', 'utf8');
+	fs.writeFile('./controllers/' + name + '.js', model_content, function(err) {});
+
+	// Update controllers/init.js
+	var init_content = fs.readFileSync(__dirname + '/templates/init-controllers.js', 'utf8');
+	var content = Mustache.render(init_content, {models: ionrc.models});
+	fs.writeFile('./controllers/init.js', content, function(err) {});
 }	
