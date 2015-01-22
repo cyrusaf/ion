@@ -56,6 +56,23 @@ var init = function() {
 		var content = fs.readFileSync(__dirname + '/templates/init-controllers.js', 'utf8');
 		fs.writeFile('./controllers/init.js', content, function(err) {});
 	}
+
+	// Create package.json
+	if (!fs.existsSync('./package.json')) {
+		console.log("Creating package.json");
+		var package_json = {};
+		package_json.name = process.argv[3];
+		package_json.version = "0.0.0";
+		package_json.main = "main.js";
+
+		package_json.dependencies = {};
+		package_json.dependencies.express = "^4.11.0";
+		package_json.dependencies['body-parser'] = "^1.10.1";
+		package_json.dependencies['cors'] = "^2.5.2";
+		package_json.dependencies['mongoose'] = "^3.8.21";
+
+		fs.writeFile('./package.json', JSON.stringify(package_json, null, "\t"), function(err) {});
+	}
 }
 
 if (process.argv[2].toLowerCase() == 'init') {
@@ -71,6 +88,28 @@ if (!fs.existsSync('./.ionrc')) {
 }
 
 var ionrc = JSON.parse(fs.readFileSync('./.ionrc', 'utf8'));
+
+var updateFiles = function (ionrc, model) {
+	// Create model file
+	var model_content = fs.readFileSync(__dirname + '/templates/model.js', 'utf8');
+	model_content = Mustache.render(model_content, {name: model, models: ionrc.models});
+	fs.writeFile('./models/' + name + '.js', model_content, function(err) {});
+
+	// Update models/init.js
+	var init_content = fs.readFileSync(__dirname + '/templates/init-models.js', 'utf8');
+	var content = Mustache.render(init_content, {name: model, models: ionrc.models});
+	fs.writeFile('./models/init.js', content, function(err) {});
+
+	// Create controller file
+	var controller_content = fs.readFileSync(__dirname + '/templates/controller.js', 'utf8');
+	var controller_content = Mustache.render(controller_content, {name: model, models: ionrc.models});
+	fs.writeFile('./controllers/' + name + '.js', controller_content, function(err) {});
+
+	// Update controllers/init.js
+	var init_content = fs.readFileSync(__dirname + '/templates/init-controllers.js', 'utf8');
+	var content = Mustache.render(init_content, {models: ionrc.models});
+	fs.writeFile('./controllers/init.js', content, function(err) {});
+}
 
 // Generate
 // ==========
@@ -95,21 +134,8 @@ if (process.argv[2].toLowerCase() == 'generate') {
 	ionrc.models.push(name);
 	fs.writeFile('./.ionrc', JSON.stringify(ionrc, null, "\t"), function(err) {});
 
-	// Create model file
-	var model_content = fs.readFileSync(__dirname + '/templates/model.js', 'utf8');
-	fs.writeFile('./models/' + name + '.js', model_content, function(err) {});
-
-	// Update models/init.js
-	var init_content = fs.readFileSync(__dirname + '/templates/init-models.js', 'utf8');
-	var content = Mustache.render(init_content, {name: process.argv[3], models: ionrc.models});
-	fs.writeFile('./models/init.js', content, function(err) {});
-
-	// Create controller file
-	var model_content = fs.readFileSync(__dirname + '/templates/controller.js', 'utf8');
-	fs.writeFile('./controllers/' + name + '.js', model_content, function(err) {});
-
-	// Update controllers/init.js
-	var init_content = fs.readFileSync(__dirname + '/templates/init-controllers.js', 'utf8');
-	var content = Mustache.render(init_content, {models: ionrc.models});
-	fs.writeFile('./controllers/init.js', content, function(err) {});
+	updateFiles(ionrc, name);
 }	
+
+// Remove
+// ==========
