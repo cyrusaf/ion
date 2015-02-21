@@ -3,6 +3,56 @@
 var fs       = require('fs');
 var Mustache = require('mustache');
 
+// Generate UI
+// ==========
+if (process.argv[2].toLowerCase() == 'generate' && process.argv[3].toLowerCase() == 'ui') {
+
+	// Make sure ion init hasn't been called
+	if (fs.existsSync('./.ionrc')) {
+		console.log("This directory has already been initialized as an api");
+		return
+	}
+
+	generateUI();
+	return
+}
+
+function generateUI() {
+	console.log('=====================');
+	console.log('=== Generating UI ===');
+	console.log('=====================');
+
+	// Create index.html
+	console.log("Creating index.html...");
+	var index_content = fs.readFileSync(__dirname + '/templates/ui-ng/index.html', 'utf8');
+	index_content = Mustache.render(index_content, {});
+	fs.writeFile('./index.html', index_content, function(err) {});
+
+	// Create css
+	console.log("Creating css/main.css...");
+	fs.mkdirSync('./css');
+	var css_content = fs.readFileSync(__dirname + '/templates/ui-ng/main.css', 'utf8');
+	css_content = Mustache.render(css_content, {});
+	fs.writeFile('./css/main.css', css_content, function(err) {});
+
+	// Create js/app.js
+	fs.mkdirSync('./js');
+	console.log("Creating js/app.js...");
+	var app_content = fs.readFileSync(__dirname + '/templates/ui-ng/app.js', 'utf8');
+	app_content = Mustache.render(app_content, {});
+	fs.writeFile('./js/app.js', app_content, function(err) {});
+
+	// Create js/controllers.js
+	console.log("Creating js/controllers.js...");
+	var controllers_content = fs.readFileSync(__dirname + '/templates/ui-ng/controllers.js', 'utf8');
+	controllers_content = Mustache.render(controllers_content, {});
+	fs.writeFile('./js/controllers.js', controllers_content, function(err) {});
+
+	// Run bower commands to install angular
+	var shell = require('shelljs');
+	shell.exec('bower install angularjs');
+}
+
 // Init
 // ==========
 var init = function() {
@@ -75,6 +125,7 @@ var init = function() {
 	}
 }
 
+// If init specified, call init()
 if (process.argv[2].toLowerCase() == 'init') {
 	init();
 	return
@@ -86,9 +137,13 @@ if (!fs.existsSync('./.ionrc')) {
 	console.log("Please run 'ion init' first");
 	return
 }
-
+// Create ionrc from .ionrc
 var ionrc = JSON.parse(fs.readFileSync('./.ionrc', 'utf8'));
 
+// Generate
+// ==========
+
+// Define updateFiles(ionrc, model)
 var updateFiles = function (ionrc, model) {
 	// Create model file
 	var model_content = fs.readFileSync(__dirname + '/templates/model.js', 'utf8');
@@ -111,8 +166,7 @@ var updateFiles = function (ionrc, model) {
 	fs.writeFile('./controllers/init.js', content, function(err) {});
 }
 
-// Generate
-// ==========
+// If generate, call generate()
 if (process.argv[2].toLowerCase() == 'generate') {
 
 	// Check if name is specified
