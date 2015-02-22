@@ -48,9 +48,17 @@ function generateUI() {
 	controllers_content = Mustache.render(controllers_content, {});
 	fs.writeFile('./js/controllers.js', controllers_content, function(err) {});
 
+	// Create partials
+	console.log("Creating partials...");
+	fs.mkdirSync('./partials');
+	var partial_content = fs.readFileSync(__dirname + '/templates/ui-ng/examplePartial.html', 'utf8');
+	partial_content = Mustache.render(partial_content, {});
+	fs.writeFile('./partials/examplePartial.html', partial_content, function(err) {});
+
 	// Run bower commands to install angular
 	var shell = require('shelljs');
-	shell.exec('bower install angularjs');
+	shell.exec('bower install angular');
+	shell.exec('bower install angular-route');
 }
 
 // Init
